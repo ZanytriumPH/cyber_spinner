@@ -7,10 +7,20 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <ImageView
+        android:id="@+id/menuIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_menu"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
     <!-- 转盘图片 -->
-
-    <!-- 指示箭头 -->
-
     <ImageView
         android:id="@+id/wheelImage"
         android:layout_width="576dp"
@@ -23,6 +33,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.179" />
 
+    <!-- 其他原有控件保持不变 -->
     <ImageView
         android:id="@+id/indicator"
         android:layout_width="25dp"

@@ -6,6 +6,7 @@ import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,14 +15,14 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import java.util.Random;
 
-
 public class MainActivity extends AppCompatActivity {
 
     private TextView resultText;
     private ImageView wheelImage;
+    private ImageView menuIcon; // 新增菜单图标引用
     private boolean isSpinning = false;
     private Random random = new Random();
-    private float currentDegree = 0f; // 新增：记录当前转盘的总旋转角度
+    private float currentDegree = 0f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,14 +34,15 @@ public class MainActivity extends AppCompatActivity {
         resultText = findViewById(R.id.resultText);
         wheelImage = findViewById(R.id.wheelImage);
         Button generateButton = findViewById(R.id.generateButton);
+        menuIcon = findViewById(R.id.menuIcon); // 初始化菜单图标
+
+        // 设置菜单点击事件
+        menuIcon.setOnClickListener(v -> showPopupMenu(v));
 
         // 设置按钮点击事件
-        generateButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!isSpinning) {
-                    spinWheel();
-                }
+        generateButton.setOnClickListener(v -> {
+            if (!isSpinning) {
+                spinWheel();
             }
         });
 
@@ -52,41 +54,55 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // 显示弹出菜单
+    private void showPopupMenu(View view) {
+        PopupMenu popupMenu = new PopupMenu(this, view);
+        popupMenu.getMenuInflater().inflate(R.menu.main_menu, popupMenu.getMenu());
+
+        // 菜单选项点击事件
+        popupMenu.setOnMenuItemClickListener(item -> {
+            int itemId = item.getItemId();
+            // 处理选项2
+            if (itemId == R.id.menu_item1) {
+                // 处理选项1
+                return true;
+            } else return itemId == R.id.menu_item2;
+        });
+
+        popupMenu.show();
+    }
+
+    // 转盘旋转方法（保持不变）
     private void spinWheel() {
         isSpinning = true;
         resultText.setText("");
 
-        // 生成3-5圈的随机圈数（3圈=1080度，5圈=1800度）
         int circles = random.nextInt(3) + 3;
         int fullCirclesDegrees = circles * 360;
         int randomOffset = random.nextInt(360);
         int totalDegrees = fullCirclesDegrees + randomOffset;
 
-        // 计算新的结束角度（在当前角度基础上累加）
         float newDegree = currentDegree + totalDegrees;
 
-        // 旋转动画设置：从当前角度旋转到新角度
         Animation rotation = new RotateAnimation(
-                currentDegree, // 从当前角度开始
-                newDegree,     // 旋转到新角度
+                currentDegree,
+                newDegree,
                 Animation.RELATIVE_TO_SELF,
                 0.5f,
                 Animation.RELATIVE_TO_SELF,
                 0.5f
         );
 
-        rotation.setDuration(750); // 旋转时间
+        rotation.setDuration(750);
         rotation.setFillAfter(true);
 
-        // 动画结束后更新当前角度并计算结果
         rotation.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationStart(Animation animation) {}
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                currentDegree = newDegree; // 更新当前角度为新角度
-                // 根据最终角度计算结果（每36度对应一个数字，1-10循环）
+                currentDegree = newDegree;
                 int result = ((int)(currentDegree % 360) / 30) % 12 + 1;
                 resultText.setText(String.valueOf(result));
                 isSpinning = false;
