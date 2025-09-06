@@ -128,28 +128,27 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.show();
     }
 
-    // 在spinWheel()方法中添加设置按钮文字的代码
+    // 在spinWheel()方法中，确保基于当前角度计算新的目标角度
     private void spinWheel() {
         isSpinning = true;
         resultText.setText("");
-        // 旋转开始时修改按钮文字为"跳过旋转"
         generateButton.setText("跳过旋转");
 
-        // 其余代码保持不变...
-        int circles = random.nextInt(3) + 3;
+        // 基于当前角度（可能是上次旋转结束或跳过的角度）计算新的旋转角度
+        // 随机旋转3-5圈（每圈360度），再加上0-360度的随机偏移
+        int circles = random.nextInt(3) + 3; // 3-5圈
         int fullCirclesDegrees = circles * 360;
         int randomOffset = random.nextInt(360);
         int totalDegrees = fullCirclesDegrees + randomOffset;
 
+        // 新目标角度 = 当前角度 + 总旋转角度（确保连续旋转）
         targetDegree = currentDegree + totalDegrees;
 
         rotation = new RotateAnimation(
-                currentDegree,
-                targetDegree,
-                Animation.RELATIVE_TO_SELF,
-                0.5f,
-                Animation.RELATIVE_TO_SELF,
-                0.5f
+                currentDegree, // 从当前角度开始
+                targetDegree,  // 到新目标角度结束
+                Animation.RELATIVE_TO_SELF, 0.5f,
+                Animation.RELATIVE_TO_SELF, 0.5f
         );
 
         rotation.setDuration(rotationTime);
@@ -157,35 +156,67 @@ public class MainActivity extends AppCompatActivity {
 
         rotation.setAnimationListener(new Animation.AnimationListener() {
             @Override
-            public void onAnimationStart(Animation animation) {}
+            public void onAnimationStart(Animation animation) {
+            }
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                currentDegree = targetDegree;
-                int result = ((int)(currentDegree % 360) / 30) % 12 + 1;
+                currentDegree = targetDegree; // 更新当前角度为最终角度
+                int result = ((int) (currentDegree % 360) / 30) % 12 + 1;
                 resultText.setText(String.valueOf(result));
                 isSpinning = false;
-                // 旋转结束后恢复按钮文字为"开始旋转"
                 generateButton.setText("开始旋转");
             }
 
             @Override
-            public void onAnimationRepeat(Animation animation) {}
+            public void onAnimationRepeat(Animation animation) {
+            }
         });
 
         wheelImage.startAnimation(rotation);
     }
 
-    // 在skipRotation()方法中添加恢复按钮文字的代码
+    // 修改MainActivity中的skipRotation()方法
     private void skipRotation() {
-        rotation.cancel();
-        wheelImage.clearAnimation();
-        currentDegree = targetDegree;
-        wheelImage.setRotation(currentDegree);
-        int result = ((int)(currentDegree % 360) / 30) % 12 + 1;
-        resultText.setText(String.valueOf(result));
-        isSpinning = false;
-        // 跳过旋转后恢复按钮文字为"开始旋转"
-        generateButton.setText("开始旋转");
+        if (rotation != null && isSpinning) {
+            // 取消当前动画
+            rotation.cancel();
+
+            // 获取当前旋转角度（通过ImageView的旋转状态）
+            float currentRotation = wheelImage.getRotation();
+
+            // 创建一个1毫秒的快速动画，从当前角度过渡到目标角度
+            RotateAnimation fastRotation = new RotateAnimation(
+                    currentRotation,
+                    targetDegree,
+                    Animation.RELATIVE_TO_SELF, 0.5f,
+                    Animation.RELATIVE_TO_SELF, 0.5f
+            );
+            fastRotation.setDuration(1); // 1毫秒内完成
+            fastRotation.setFillAfter(true);
+
+            // 设置动画结束监听，更新状态
+            fastRotation.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {}
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    currentDegree = targetDegree; // 更新当前角度
+                    int result = ((int) (currentDegree % 360) / 30) % 12 + 1;
+                    resultText.setText(String.valueOf(result));
+                    isSpinning = false;
+                    generateButton.setText("开始旋转");
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {}
+            });
+
+            // 启动快速动画
+            wheelImage.startAnimation(fastRotation);
+            // 更新动画引用
+            rotation = fastRotation;
+        }
     }
 }
