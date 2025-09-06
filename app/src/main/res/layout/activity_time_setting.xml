@@ -9,40 +9,43 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="设置旋转时间"
+        android:layout_marginTop="184dp"
+        android:text="设置旋转时间(单位:毫秒)"
         android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.2" />
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="建议范围：500-3000毫秒"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="@id/timeInput"
+        app:layout_constraintTop_toBottomOf="@id/timeInput" />
 
     <EditText
         android:id="@+id/timeInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="请输入毫秒数（例如：5000）"
+        android:layout_marginTop="44dp"
+        android:hint="请输入毫秒数（例如：1000）"
         android:inputType="number"
-        android:layout_marginTop="32dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="建议范围：500-3000毫秒"
-        android:textSize="14sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintStart_toStartOf="@id/timeInput"
-        app:layout_constraintTop_toBottomOf="@id/timeInput" />
 
     <Button
         android:id="@+id/confirmButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
         android:text="确认"
-        android:layout_marginTop="48dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/timeInput" />
 
