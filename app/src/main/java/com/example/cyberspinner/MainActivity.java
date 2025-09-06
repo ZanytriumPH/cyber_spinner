@@ -24,15 +24,15 @@ public class MainActivity extends AppCompatActivity {
     private TextView resultText;
     private ImageView wheelImage;
     private ImageView menuIcon;
+    private Button generateButton;
     private boolean isSpinning = false;
     private Random random = new Random();
     private float currentDegree = 0f;
-    // 皮肤资源列表，与SkinSelectorActivity保持一致
+    private float targetDegree;  // 新增：保存目标角度
     private List<Integer> skinList;
     private SharedPreferences sharedPreferences;
-    // 在类中添加成员变量
     private int rotationTime = 750;
-
+    private RotateAnimation rotation;  // 保存动画引用
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,24 +48,26 @@ public class MainActivity extends AppCompatActivity {
         // 获取控件引用
         resultText = findViewById(R.id.resultText);
         wheelImage = findViewById(R.id.wheelImage);
-        Button generateButton = findViewById(R.id.generateButton);
+        generateButton = findViewById(R.id.generateButton);
         menuIcon = findViewById(R.id.menuIcon);
 
-        // 加载保存的皮肤
+        // 加载保存的皮肤和旋转时间
         loadSelectedSkin();
-
-        // 加载保存的旋转时间
         loadRotationTime();
 
         // 设置菜单点击事件
         menuIcon.setOnClickListener(v -> showPopupMenu(v));
 
-        // 设置按钮点击事件
+        // 设置开始旋转按钮点击事件
         generateButton.setOnClickListener(v -> {
             if (!isSpinning) {
                 spinWheel();
+            } else {
+                // 如果正在旋转，点击则跳过等待
+                skipRotation();
             }
         });
+
 
         // 处理系统栏Insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -75,13 +77,10 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    // 添加加载旋转时间的方法
     private void loadRotationTime() {
         rotationTime = sharedPreferences.getInt("rotation_time", 750);
     }
 
-
-    // 初始化皮肤列表，与SkinSelectorActivity中的列表保持一致
     private void initSkinList() {
         skinList = new ArrayList<>();
         skinList.add(R.drawable.wheel);
@@ -94,38 +93,31 @@ public class MainActivity extends AppCompatActivity {
         skinList.add(R.drawable.wheel8);
     }
 
-    // 加载选中的皮肤
     private void loadSelectedSkin() {
         int selectedSkin = sharedPreferences.getInt("selected_skin", 0);
-        // 检查索引是否有效
         if (selectedSkin >= 0 && selectedSkin < skinList.size()) {
             wheelImage.setImageResource(skinList.get(selectedSkin));
         }
     }
 
-    // 当从皮肤选择页面返回时，重新加载皮肤
     @Override
     protected void onResume() {
         super.onResume();
         loadSelectedSkin();
-        loadRotationTime(); // 添加这行
+        loadRotationTime();
     }
 
-    // 显示弹出菜单
     private void showPopupMenu(View view) {
         PopupMenu popupMenu = new PopupMenu(this, view);
         popupMenu.getMenuInflater().inflate(R.menu.main_menu, popupMenu.getMenu());
 
-        // 菜单选项点击事件
         popupMenu.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.menu_item1) {
-                // 点击"换转盘皮肤"，跳转到皮肤选择页面
                 Intent intent = new Intent(MainActivity.this, SkinSelectorActivity.class);
                 startActivity(intent);
                 return true;
             } else if (itemId == R.id.menu_item2) {
-                // 点击"调旋转时间"，跳转到时间设置页面
                 Intent intent = new Intent(MainActivity.this, TimeSettingActivity.class);
                 startActivity(intent);
                 return true;
@@ -136,30 +128,31 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.show();
     }
 
-    // 转盘旋转方法
+    // 在spinWheel()方法中添加设置按钮文字的代码
     private void spinWheel() {
         isSpinning = true;
         resultText.setText("");
+        // 旋转开始时修改按钮文字为"跳过旋转"
+        generateButton.setText("跳过旋转");
 
+        // 其余代码保持不变...
         int circles = random.nextInt(3) + 3;
         int fullCirclesDegrees = circles * 360;
         int randomOffset = random.nextInt(360);
         int totalDegrees = fullCirclesDegrees + randomOffset;
 
-        float newDegree = currentDegree + totalDegrees;
+        targetDegree = currentDegree + totalDegrees;
 
-        Animation rotation = new RotateAnimation(
+        rotation = new RotateAnimation(
                 currentDegree,
-                newDegree,
+                targetDegree,
                 Animation.RELATIVE_TO_SELF,
                 0.5f,
                 Animation.RELATIVE_TO_SELF,
                 0.5f
         );
 
-        // 使用保存的旋转时间
         rotation.setDuration(rotationTime);
-
         rotation.setFillAfter(true);
 
         rotation.setAnimationListener(new Animation.AnimationListener() {
@@ -168,10 +161,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onAnimationEnd(Animation animation) {
-                currentDegree = newDegree;
+                currentDegree = targetDegree;
                 int result = ((int)(currentDegree % 360) / 30) % 12 + 1;
                 resultText.setText(String.valueOf(result));
                 isSpinning = false;
+                // 旋转结束后恢复按钮文字为"开始旋转"
+                generateButton.setText("开始旋转");
             }
 
             @Override
@@ -179,5 +174,18 @@ public class MainActivity extends AppCompatActivity {
         });
 
         wheelImage.startAnimation(rotation);
+    }
+
+    // 在skipRotation()方法中添加恢复按钮文字的代码
+    private void skipRotation() {
+        rotation.cancel();
+        wheelImage.clearAnimation();
+        currentDegree = targetDegree;
+        wheelImage.setRotation(currentDegree);
+        int result = ((int)(currentDegree % 360) / 30) % 12 + 1;
+        resultText.setText(String.valueOf(result));
+        isSpinning = false;
+        // 跳过旋转后恢复按钮文字为"开始旋转"
+        generateButton.setText("开始旋转");
     }
 }
